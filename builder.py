@@ -85,7 +85,7 @@ def extract_chapter_number(url):
     chapter_number = url.rstrip('/').split('/')[-1]
     return chapter_number
 
-def download_chapter(url, novel_dir, min_delay=1, max_delay=5):
+def download_chapter(url, novel_dir, min_delay=1, max_delay=8):
     """Downloads a chapter using wget and saves the text content from the chapter-container."""
     chapter_number = extract_chapter_number(url)
     chapter_file = os.path.join(novel_dir, f"{chapter_number}.txt")
