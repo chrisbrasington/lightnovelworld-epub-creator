@@ -5,6 +5,7 @@ import os
 import subprocess
 import time
 import random, re
+import tempfile
 
 def sanitize_filename(name):
     return "".join(c for c in name if c.isalnum() or c in (" ", "-", "_")).rstrip()
@@ -85,33 +86,55 @@ def extract_chapter_number(url):
     return chapter_number
 
 def download_chapter(url, novel_dir, min_delay=1, max_delay=5):
-    """Downloads a chapter and saves it correctly, with a random delay."""
-    chapter_name = extract_chapter_number(url)
-    chapter_file = os.path.join(novel_dir, f"{chapter_name}.txt")
+    """Downloads a chapter using wget and saves the text content from the chapter-container."""
+    chapter_number = extract_chapter_number(url)
+    chapter_file = os.path.join(novel_dir, f"{chapter_number}.txt")
 
     # Ensure the directory exists
     os.makedirs(novel_dir, exist_ok=True)
 
     if os.path.exists(chapter_file):
-        print(f"Chapter {chapter_name} already exists, skipping download.")
+        print(f"Chapter {chapter_number} already exists, skipping download.")
         return
 
     print(f"Downloading: {url} -> {chapter_file}")
 
     try:
-        subprocess.run([
-            "wget",
-            "--user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-            "-O", chapter_file,
-            url
-        ], check=True)
+        # Create a temporary file to store the downloaded HTML
+        with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8") as temp_html_file:
+            temp_html_path = temp_html_file.name
+
+            # Use wget to download the page into the temporary file
+            subprocess.run([
+                "wget", "--user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+                "-O", temp_html_path,
+                url
+            ], check=True)
+
+            # Parse the downloaded HTML from the temporary file
+            with open(temp_html_path, "r", encoding="utf-8") as file:
+                soup = BeautifulSoup(file, 'html.parser')
+
+            # Extract content from the chapter-container
+            chapter_content = soup.select_one("#chapter-container")
+            
+            if chapter_content:
+                # Clean the text by stripping extra spaces and newlines
+                text_content = chapter_content.get_text("\n", strip=True)
+
+                # Write the content to the .txt file
+                with open(chapter_file, "w", encoding="utf-8") as file:
+                    file.write(text_content)
+
+                print(f"Saved: {chapter_file}")
+            else:
+                print(f"Chapter content not found for {chapter_number}")
+
     except subprocess.CalledProcessError as e:
         print(f"Download failed for {url}: {e}")
         if os.path.exists(chapter_file):
             os.remove(chapter_file)  # Remove any incomplete file
         return
-
-    print(f"Saved: {chapter_file}")
 
     # Add a random delay before the next download
     delay = random.uniform(min_delay, max_delay)
