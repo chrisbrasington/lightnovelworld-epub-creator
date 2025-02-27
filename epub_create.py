@@ -29,7 +29,7 @@ def create_epub_from_directory(novel_dir, chapters_file):
     # Set cover image if available
     cover_image_path = os.path.join(novel_dir, "cover.png")
     if os.path.exists(cover_image_path):
-        book.set_cover("cover.png", open(cover_image_path, 'rb').read(), True)
+        book.set_cover("cover.png", open(cover_image_path, 'rb').read())
 
     # Title Page
     title_page = epub.EpubHtml(title="Title Page", file_name="title.xhtml", lang="en")
