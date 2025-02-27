@@ -5,7 +5,7 @@ import os
 import subprocess
 import time
 import random, re
-import tempfile
+import tempfile, sys
 
 def sanitize_filename(name):
     return "".join(c for c in name if c.isalnum() or c in (" ", "-", "_")).rstrip()
@@ -19,12 +19,17 @@ def get_novel_title_and_author(page_path):
     return title, author
 
 def download_page(url, output_path):
+    print('/////////////')
+    print(url)
+    print('/////////////')
     subprocess.run([
         "wget", "--user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
         "-O", output_path, url
     ], check=True)
 
 def get_chapter_urls(page_path):
+    print('~~~~~~~~~~~~~~')
+    print(page_path)
     with open(page_path, "r", encoding="utf-8") as file:
         soup = BeautifulSoup(file, 'html.parser')
     
@@ -34,8 +39,10 @@ def get_chapter_urls(page_path):
     base_url = "https://www.lightnovelworld.com"
     
     while next_page:
+        print('loop!')
         chapter_list = soup.select("ul.chapter-list li a")
         for chapter in chapter_list:
+            # print(chapter)
             chapter_url = chapter['href']
             if chapter_url.startswith("//"):
                 chapter_url = "https:" + chapter_url
@@ -43,15 +50,21 @@ def get_chapter_urls(page_path):
                 chapter_url = base_url + chapter_url
             chapter_urls.append(chapter_url)
         
-        next_link = soup.select_one("a.pagination-next")
+        next_link = soup.find('li', class_='PagedList-skipToNext')
+
         if next_link:
             page_num += 1
             next_page_path = os.path.join(os.path.dirname(page_path), f"chapters_page_{page_num}.html")
-            download_page(base_url + next_link['href'], next_page_path)
+            
+            print(next_page_path)
+
+            download_page(base_url + next_link.find('a').get('href'), next_page_path)
             with open(next_page_path, "r", encoding="utf-8") as next_file:
                 soup = BeautifulSoup(next_file, 'html.parser')
         else:
             next_page = False
+
+    print(chapter_urls)
     
     return chapter_urls
 
