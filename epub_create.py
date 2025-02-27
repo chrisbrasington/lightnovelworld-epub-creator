@@ -27,9 +27,9 @@ def create_epub_from_directory(novel_dir, chapters_file):
     book.add_author(novel_author)
 
     # Set cover image if available
-    cover_image_path = os.path.join(novel_dir, "cover.jpg")
+    cover_image_path = os.path.join(novel_dir, "cover.png")
     if os.path.exists(cover_image_path):
-        book.set_cover("cover.jpg", open(cover_image_path, 'rb').read(), True)
+        book.set_cover("cover.png", open(cover_image_path, 'rb').read(), True)
 
     # Title Page
     title_page = epub.EpubHtml(title="Title Page", file_name="title.xhtml", lang="en")
@@ -75,7 +75,7 @@ def create_epub_from_directory(novel_dir, chapters_file):
             print(f"Missing: {chapter_path}")
 
     # Organize EPUB spine & TOC order
-    book.spine = ['nav', title_page] + chapter_htmls
+    book.spine = [title_page, 'nav'] + chapter_htmls
     book.toc = [
         epub.Link(chapter.file_name, chapter.title, chapter.get_id()) for chapter in chapter_htmls
     ]
