@@ -29,7 +29,7 @@ def create_epub_from_directory(novel_dir, chapters_file):
     # Set cover image if available
     cover_image_path = os.path.join(novel_dir, "cover.jpg")
     if os.path.exists(cover_image_path):
-        book.set_cover("cover.jpg", open(cover_image_path, 'rb').read())
+        book.set_cover("cover.jpg", open(cover_image_path, 'rb').read(), True)
 
     # Title Page
     title_page = epub.EpubHtml(title="Title Page", file_name="title.xhtml", lang="en")
@@ -74,29 +74,11 @@ def create_epub_from_directory(novel_dir, chapters_file):
         else:
             print(f"Missing: {chapter_path}")
 
-    # Table of Contents Page
-    toc_html = epub.EpubHtml(title="Table of Contents", file_name="toc.xhtml", lang="en")
-    toc_html.content = "<html><head></head><body><h1>Table of Contents</h1><ul>"
-    for chapter in chapter_htmls:
-        toc_html.content += f'<li><a href="{chapter.file_name}">{chapter.title}</a></li>'
-    toc_html.content += "</ul></body></html>"
-
-    book.add_item(toc_html)
-
-    # Add style
-    style = '''
-    body { font-family: "Times New Roman", serif; line-height: 1.5; }
-    h1, h2 { font-family: "Georgia", serif; text-align: center; }
-    '''
-    css = epub.EpubItem(uid="style", file_name="style.css", media_type="text/css", content=style)
-    book.add_item(css)
-
-    for item in [title_page, toc_html] + chapter_htmls:
-        item.add_item(css)
-
     # Organize EPUB spine & TOC order
-    book.spine = ['nav', title_page, toc_html] + chapter_htmls
-    book.toc = [epub.Link(chapter.file_name, chapter.title, chapter.get_id()) for chapter in chapter_htmls]
+    book.spine = ['nav', title_page] + chapter_htmls
+    book.toc = [
+        epub.Link(chapter.file_name, chapter.title, chapter.get_id()) for chapter in chapter_htmls
+    ]
 
     # Required items for EPUB
     book.add_item(epub.EpubNcx())
