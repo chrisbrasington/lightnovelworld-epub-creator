@@ -77,8 +77,8 @@ def create_epub_from_directory(novel_dir, chapters_file):
     # Table of Contents Page
     toc_html = epub.EpubHtml(title="Table of Contents", file_name="toc.xhtml", lang="en")
     toc_html.content = "<html><head></head><body><h1>Table of Contents</h1><ul>"
-    for chapter in toc_links:
-        toc_html.content += f'<li><a href="{chapter.href}">{chapter.title}</a></li>'
+    for chapter in chapter_htmls:
+        toc_html.content += f'<li><a href="{chapter.file_name}">{chapter.title}</a></li>'
     toc_html.content += "</ul></body></html>"
 
     book.add_item(toc_html)
@@ -96,7 +96,7 @@ def create_epub_from_directory(novel_dir, chapters_file):
 
     # Organize EPUB spine & TOC order
     book.spine = ['nav', title_page, toc_html] + chapter_htmls
-    book.toc = [epub.Section("Chapters", toc_links)]
+    book.toc = [epub.Link(chapter.file_name, chapter.title, chapter.get_id()) for chapter in chapter_htmls]
 
     # Required items for EPUB
     book.add_item(epub.EpubNcx())
