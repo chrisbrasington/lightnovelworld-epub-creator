@@ -1,13 +1,21 @@
-# lightnovelworld epub builder
+# epub builder
+
+## info
+zetrotranslation support added
+lightnovelworld RIP
 
 ## download chapters
 
-`python download.py https://www.lightnovelworld.com/novel/nigoru-hitomi-de-nani-wo-negau-14051345`
+use first chapter from https://zetrotranslation.com/novel/
+
+`python download.py https://zetrotranslation.com/novel/sample/chapter-1
 
 ## create epub
-provide cover.png in the novel's folder.
+provide cover.png 
 
-Title, Author, Table of Contents, and cover image will be set. 
+input manually: Title, Author
+
+Table of Contents, and cover image will be set. 
 
 `python epub_create.py`
 
